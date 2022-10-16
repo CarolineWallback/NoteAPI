@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NoteAPI.Data;
 using NoteAPI.Models;
+using System;
 
 
 namespace NoteAPI.Controllers
@@ -8,57 +10,62 @@ namespace NoteAPI.Controllers
     [ApiController]
     public class NoteController : ControllerBase
     {
-        List<Note> notes = new List<Note>()
-        {   
-            new Note(0, "Viktigt", "Ät upp din choklad"),
-            new Note(1, "Torsdag", "kalas på lekland"),
-            new Note(2, "Sommar", "semester vecka 32")
-        };
+        private NoteDbContext _dbContext;
+        public NoteController(NoteDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
 
         // GET: api/<NoteController>
         [HttpGet]
         public List<Note> Get()
         {
-            return notes;
+            return _dbContext.Notes.ToList();
         }
 
         // GET api/<NoteController>/5
         [HttpGet("{id}", Name = "Get")]
         public Note Get(int id)
         {
-            Note note = notes.Find(f => f.Id== id);
+            Note note = _dbContext.Notes.Find(id);
             return note;
         }
 
         // POST api/<NoteController>
         [HttpPost]
-        public List<Note> Post([FromBody] Note note)
+        public List<Note> Post(Note note)
         {
-            notes.Add(note);
-            return notes;
+            _dbContext.Notes.Add(note);
+            _dbContext.SaveChanges();
+
+            return _dbContext.Notes.ToList();
         }
 
         // PUT api/<NoteController>/5
         [HttpPut("{id}")]
         public List<Note> Put(int id, [FromBody] Note note)
         {
-            Note noteToEdit = notes.Find(f => f.Id== id);
-            int index = notes.IndexOf(note);
+            Note noteToEdit = _dbContext.Notes.Find(id);
+            if(noteToEdit != null)
+            {
+                noteToEdit.Title = note.Title;
+                noteToEdit.Content = note.Content;
 
-            notes[index].Title = note.Title;
-            notes[index].Content = note.Content;
-
-            return notes;
+                _dbContext.SaveChanges();
+            }
             
+             return _dbContext.Notes.ToList();
         }
 
         // DELETE api/<NoteController>/5
         [HttpDelete("{id}")]
         public List<Note> Delete(int id)
         {
-            Note note = notes.Find(f => f.Id == id);
-            notes.Remove(note);
-            return notes;
+            Note note = _dbContext.Notes.Find(id);
+            _dbContext.Notes.Remove(note);
+            _dbContext.SaveChanges();
+
+            return _dbContext.Notes.ToList();
         }
     }
 }
