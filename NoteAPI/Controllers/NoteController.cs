@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NoteAPI.Data;
 using NoteAPI.Models;
-using System;
-
 
 namespace NoteAPI.Controllers
 {
@@ -16,40 +14,39 @@ namespace NoteAPI.Controllers
             _dbContext = dbContext;
         }
 
-        // GET: api/<NoteController>
         [HttpGet]
-        public List<Note> Get()
+        public List<Note> GetAllNotes()
         {
             return _dbContext.Notes.ToList();
         }
 
-        // GET api/<NoteController>/5
-        [HttpGet("{id}", Name = "Get")]
-        public Note Get(int id)
+        [HttpGet("{tag}")]
+        public List<Note> GetNotesByTag(string tag)
         {
-            Note note = _dbContext.Notes.Find(id);
-            return note;
+            var notes = _dbContext.Notes.Where(x => x.Tag.Contains(tag)).ToList();
+            return notes;
         }
 
         // POST api/<NoteController>
         [HttpPost]
-        public List<Note> Post(Note note)
+        public List<Note> CreateNewNote(Note note)
         {
             _dbContext.Notes.Add(note);
             _dbContext.SaveChanges();
-
+            
             return _dbContext.Notes.ToList();
         }
 
         // PUT api/<NoteController>/5
         [HttpPut("{id}")]
-        public List<Note> Put(int id, [FromBody] Note note)
+        public List<Note> EditNote(int id, [FromBody] Note note)
         {
             Note noteToEdit = _dbContext.Notes.Find(id);
             if(noteToEdit != null)
             {
                 noteToEdit.Title = note.Title;
                 noteToEdit.Content = note.Content;
+                noteToEdit.Tag = note.Tag;
 
                 _dbContext.SaveChanges();
             }
@@ -59,7 +56,7 @@ namespace NoteAPI.Controllers
 
         // DELETE api/<NoteController>/5
         [HttpDelete("{id}")]
-        public List<Note> Delete(int id)
+        public List<Note> DeleteNote(int id)
         {
             Note note = _dbContext.Notes.Find(id);
             _dbContext.Notes.Remove(note);
